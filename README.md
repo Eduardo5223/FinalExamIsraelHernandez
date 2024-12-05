@@ -1,8 +1,6 @@
-# IsraelHernandezUnitTest
+# IsraelHernandez Final Exam
 
-ScreenShot JTest Selenium Test:
-
-![image](https://github.com/user-attachments/assets/be058924-455c-4d1d-ae68-0d10c4a7fd61)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Eduardo5223/FinalExamIsraelHernandez/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Eduardo5223/FinalExamIsraelHernandez/tree/main)
 
 
 
