@@ -8,7 +8,7 @@ executors:
 
 jobs:
   unit_tests:
-    executor: maven-executor  # Se define el executor para este job
+    executor: maven-executor
     steps:
       - checkout
       - run:
@@ -17,31 +17,24 @@ jobs:
       - run:
           name: Ejecutar pruebas unitarias - createUser_HappyPath
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#createUser_HappyPath
-
       - run:
           name: Ejecutar pruebas unitarias - createUser_DuplicateEmail
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#createUser_DuplicateEmail
-
       - run:
           name: Ejecutar pruebas unitarias - deleteUser_HappyPath
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#deleteUser_HappyPath
-
       - run:
           name: Ejecutar pruebas unitarias - whenUserUpdateData_test
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#whenUserUpdateData_test
-
       - run:
           name: Ejecutar pruebas unitarias - whenPasswordLong_test
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#whenPasswordLong_test
-
       - run:
           name: Ejecutar pruebas unitarias - findUserByEmail_HappyPath
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findUserByEmail_HappyPath
-
       - run:
           name: Ejecutar pruebas unitarias - findUserByEmail_NotFound
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findUserByEmail_NotFound
-
       - run:
           name: Ejecutar pruebas unitarias - findAllUsers_HappyPath
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findAllUsers_HappyPath
@@ -55,9 +48,6 @@ jobs:
           MYSQL_ROOT_PASSWORD: "123456"
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - maven-repo-{{ checksum "pom.xml" }}
       - run:
           name: Instalar cliente MySQL
           command: sudo apt-get update && sudo apt-get install -y mysql-client
@@ -112,24 +102,27 @@ jobs:
           command: google-chrome --version
       - run:
           name: Create record
-          command: |
-            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test1_mernCreate
+          command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test1_mernCreate
       - run:
           name: Try to create a new record using an existing email
-          command: |
-            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test2_mernexistingEmail
+          command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test2_mernexistingEmail
       - run:
           name: Modify age in a record
-          command: |
-            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test3_mernmodifyAge
+          command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test3_mernmodifyAge
       - run:
           name: Search for a specific record by name
-          command: |
-            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test4_mernsearchbyName
+          command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test4_mernsearchbyName
       - run:
           name: Delete a record
-          command: |
-            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test5_mernErase
+          command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test5_mernErase
+
+  deployment:
+    docker:
+      - image: cimg/openjdk:17.0-browsers
+    steps:
+      - run:
+          name: Desplegar aplicación
+          command: echo "¡Despliegue completado con éxito!"
 
 workflows:
   version: 2
@@ -142,3 +135,11 @@ workflows:
       - functional:
           requires:
             - integration
+      - deployment:
+          requires:
+            - functional
+          filters:
+            branches:
+              only:
+                - main
+
