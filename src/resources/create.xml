@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <!-- Datos para la prueba de FindAllUsers -->
+    <usuariosFinal id="1" name="username2" email="correo2@correo.com" password="123456" isLogged="false"/>
+
+    <!-- Datos para la prueba de FindUserByEmail -->
+    <usuariosFinal id="2" name="findUserByEmail" email="finduser@example.com" password="password456" isLogged="true"/>
+
+    <!-- Datos para la prueba de FindUserById -->
+    <usuariosFinal id="3" name="findUserById" email="finduserbyid@example.com" password="password789" isLogged="true"/>
+</dataset>
