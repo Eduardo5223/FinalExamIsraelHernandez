@@ -59,12 +59,12 @@ public class CRUDSeleniumTest {
 	    driver.findElement(By.xpath("//div[@role='listbox']//span[text()='Male']")).click();
 	    driver.findElement(By.xpath("/html/body/div[3]/div/div[2]/form/button")).click();
 	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+	    takeScreenshot("create");
 	    WebElement messageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
 	        By.xpath("/html/body/div[3]/div/div[2]/form/div[4]/div/p")));
 	    String result = messageElement.getText();
 	    assertThat(result, is("Successfully added!"));
 	    driver.findElement(By.xpath("/html/body/div[3]/div/i")).click();
-	    takeScreenshot("create");
 	  }
 	  
 	  @Test
@@ -82,11 +82,11 @@ public class CRUDSeleniumTest {
 	    driver.findElement(By.xpath("//div[@role='listbox']//span[text()='Male']")).click();
 	    driver.findElement(By.xpath("/html/body/div[3]/div/div[2]/form/button")).click();
 	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+	    takeScreenshot("existingemail");
 	    WebElement messageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
 	        By.xpath("//p[text()='That email is already taken.']")));
 	    String result = messageElement.getText();
 	    assertThat(result, is("That email is already taken."));
-	    takeScreenshot("existingemail");
 	  }
 	  
 	  @Test
@@ -99,11 +99,11 @@ public class CRUDSeleniumTest {
 	    driver.findElement(By.name("age")).clear();
 	    driver.findElement(By.name("age")).sendKeys("19");
 	    driver.findElement(By.xpath("/html/body/div[3]/div/div[2]/form/button")).click();
+	    takeScreenshot("updateage");
 	    WebElement messageElement = wait.until(ExpectedConditions.visibilityOfElementLocated(
 		        By.xpath("//p[text()='Successfully updated!']")));
 		String result = messageElement.getText();
 		assertThat(result, is("Successfully updated!"));
-		takeScreenshot("updateage");
 	  }
 	  
 	  @Test
@@ -184,7 +184,7 @@ public class CRUDSeleniumTest {
 	        WebElement nameCell = row.findElement(By.xpath(".//td[1]")); 
 	        nombresEnTabla.add(nameCell.getText().trim());
 	    }
-
+	    takeScreenshot("findall");
 	    // Log de nombres encontrados
 	    System.out.println("Nombres en tabla: " + nombresEnTabla);
 
@@ -194,7 +194,6 @@ public class CRUDSeleniumTest {
 	                   nombresEnTabla.contains(usuario), is(true));
 	        System.out.println("El usuario " + usuario + " se encuentra en la tabla.");
 	    }
-	    takeScreenshot("findall");
 	}
 
 	  public static void takeScreenshot(String fileName) throws IOException{
