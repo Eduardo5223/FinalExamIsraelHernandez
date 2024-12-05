@@ -1,31 +1,144 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/configuration-reference
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/jobs-steps/#jobs-overview & https://circleci.com/docs/configuration-reference/#jobs
-jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/executor-intro/ & https://circleci.com/docs/configuration-reference/#executor-job
+executors:
+  maven-executor:
     docker:
-      # Specify the version you desire here
-      # See: https://circleci.com/developer/images/image/cimg/base
-      - image: cimg/base:current
+      - image: cimg/openjdk:17.0-browsers
+    working_directory: ~/repo
 
-    # Add steps to the job
-    # See: https://circleci.com/docs/jobs-steps/#steps-overview & https://circleci.com/docs/configuration-reference/#steps
+jobs:
+  unit_tests:
+    executor: maven-executor  # Se define el executor para este job
     steps:
-      # Checkout the code as the first step.
       - checkout
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Instalar dependencias
+          command: mvn clean install -DskipTests=true
+      - run:
+          name: Ejecutar pruebas unitarias - createUser_HappyPath
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#createUser_HappyPath
 
-# Orchestrate jobs using workflows
-# See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
+      - run:
+          name: Ejecutar pruebas unitarias - createUser_DuplicateEmail
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#createUser_DuplicateEmail
+
+      - run:
+          name: Ejecutar pruebas unitarias - deleteUser_HappyPath
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#deleteUser_HappyPath
+
+      - run:
+          name: Ejecutar pruebas unitarias - whenUserUpdateData_test
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#whenUserUpdateData_test
+
+      - run:
+          name: Ejecutar pruebas unitarias - whenPasswordLong_test
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#whenPasswordLong_test
+
+      - run:
+          name: Ejecutar pruebas unitarias - findUserByEmail_HappyPath
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findUserByEmail_HappyPath
+
+      - run:
+          name: Ejecutar pruebas unitarias - findUserByEmail_NotFound
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findUserByEmail_NotFound
+
+      - run:
+          name: Ejecutar pruebas unitarias - findAllUsers_HappyPath
+          command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findAllUsers_HappyPath
+
+  integration:
+    docker:
+      - image: cimg/openjdk:17.0-browsers
+      - image: cimg/mysql:8.0
+        environment:
+          MYSQL_DATABASE: "calidad2024"
+          MYSQL_ROOT_PASSWORD: "123456"
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - maven-repo-{{ checksum "pom.xml" }}
+      - run:
+          name: Instalar cliente MySQL
+          command: sudo apt-get update && sudo apt-get install -y mysql-client
+      - run:
+          name: Inicializar MySQL
+          command: sleep 30
+      - run:
+          name: Crear base de datos y tabla
+          command: |
+            mysql -h 127.0.0.1 -u root -p123456 -e "CREATE DATABASE IF NOT EXISTS calidad2024;"
+            mysql -h 127.0.0.1 -u root -p123456 -e "USE calidad2024; CREATE TABLE IF NOT EXISTS usuariosFinal (
+              id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+              name VARCHAR(15),
+              email VARCHAR(50),
+              password VARCHAR(16),
+              isLogged TINYINT(1)
+            );"
+      - run:
+          name: Ejecutar pruebas de creación de usuario
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testCreateUser_HappyPath
+      - run:
+          name: Ejecutar pruebas de email ya existente
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testCreateUser_EmailAlreadyExists
+      - run:
+          name: Ejecutar pruebas de actualización de usuario
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testUpdateUser
+      - run:
+          name: Ejecutar pruebas de eliminación de usuario
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testDeleteUser
+      - run:
+          name: Ejecutar pruebas de encontrar todos los usuarios
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testFindAllUsers
+      - run:
+          name: Ejecutar pruebas de encontrar usuario por email
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testFindUserByEmail
+      - run:
+          name: Ejecutar pruebas de encontrar usuario por ID
+          command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testFindUserById
+
+  functional:
+    executor: maven-executor
+    steps:
+      - checkout
+      - run:
+          name: Configurar Chrome y Xvfb
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y google-chrome-stable libnss3 xvfb chromium-driver
+            Xvfb :99 -ac & export DISPLAY=:99
+      - run:
+          name: Verificar versión de Chrome
+          command: google-chrome --version
+      - run:
+          name: Create record
+          command: |
+            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test1_mernCreate
+      - run:
+          name: Try to create a new record using an existing email
+          command: |
+            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test2_mernexistingEmail
+      - run:
+          name: Modify age in a record
+          command: |
+            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test3_mernmodifyAge
+      - run:
+          name: Search for a specific record by name
+          command: |
+            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test4_mernsearchbyName
+      - run:
+          name: Delete a record
+          command: |
+            mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test5_mernErase
+
 workflows:
-  say-hello-workflow: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  version: 2
+  build_and_test:
     jobs:
-      - say-hello
+      - unit_tests
+      - integration:
+          requires:
+            - unit_tests
+      - functional:
+          requires:
+            - integration
