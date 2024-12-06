@@ -38,6 +38,10 @@ jobs:
       - run:
           name: Ejecutar pruebas unitarias - findAllUsers_HappyPath
           command: mvn test -Dtest=com.mayab.quality.unittest.service.UserServiceTest#findAllUsers_HappyPath
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-{{checksum "pom.xml" }}
 
   integration:
     docker:
@@ -86,6 +90,10 @@ jobs:
       - run:
           name: Ejecutar pruebas de encontrar usuario por ID
           command: mvn test -Dtest=com.mayab.quality.integration.UserServiceTest#testFindUserById
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-{{checksum "pom.xml" }}
 
   functional:
     executor: maven-executor
