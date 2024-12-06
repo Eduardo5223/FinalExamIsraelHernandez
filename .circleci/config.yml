@@ -115,6 +115,14 @@ jobs:
       - run:
           name: Delete a record
           command: mvn clean test -Dtest=com.mayab.quality.functional.CRUDSeleniumTest#test5_mernErase
+      - store_test_results:
+          path: target/surefire-reports
+      - store_artifacts:
+          path: src/screenshots
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: maven-repo-{{checksum "pom.xml" }}
 
   deployment:
     docker:
